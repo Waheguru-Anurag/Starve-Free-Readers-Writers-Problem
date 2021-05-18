@@ -1,0 +1,45 @@
+semaphore mutex;        // Intialized to 1, syncs changes to shared variable readcnt
+semaphore wrt;          // Intialized to 1, controls write access to the resource
+semaphore queue;        // Intialized to 1, preserves ordering of requests to access (read/write) the resource by processes
+
+int readcnt = 0;        // Number of readers currently accessing the resource
+
+// readers process
+do {
+    // ENTRY SECTION
+    wait(queue);        // wait for the request to be lined for processing
+    wait(mutex);        // reader requests read access for the resource
+    readcnt++;          // increment the number of active readers by 1
+    if(readcnt == 1){
+        wait(wrt);      // if the reader is the first reader than lock the resource for writers
+    }
+    signal(queue);      // release the queue semaphore to allow next request to be serviced
+    signal(mutex);      // release the mutex semaphore so that other readers can also enter to read the resource
+
+    // CRITICAL SECTION 
+    /* perform the reading operation */
+
+    // EXIT SECTION
+    wait(mutex);        // the reader wants to leave
+    readcnt--;          // decrement the number of active readers by 1
+    if(readcnt == 0){   
+        signal(wrt);    // if there is no active reader than allow writers to access the resource
+    }
+    signal(mutex);      // the reader leaves
+    
+} while(true);
+
+// writers process
+do{
+    // ENTRY SECTION
+    wait(queue);        // wait for the request to be lined for processing
+    wait(wrt);          // writer requests write access for the resource
+    signal(queue);      // release the queue semaphore to allow next request to be serviced
+
+    // CRITICAL SECTION
+    /* perform the writing operation */
+    
+    // EXIT SECTION
+    signal(wrt);        // writer leaves giving access of the resource to other readers/writers
+
+} while(true);
