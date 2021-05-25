@@ -86,3 +86,11 @@ do{
     * Writer writes to the shared resources.
   * Exit Section
     * Writer releases the `wrt` semaphore at the end.
+
+## Code Execution
+* G++ Compiler
+```
+g++ code.cpp -pthread
+./a.out
+```
+
